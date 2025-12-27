@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch --all --prune)",
+      "Bash(pwsh -Command \".specify/scripts/powershell/create-new-feature.ps1 -Json -ShortName ''todo-app-cli'' -Number 1 ''In-Memory Python Console Todo App for Hackathon Phase I Target audience:Hackathon judges evaluating spec-driven development and code quality Focus:Implement basic Todo features using Agentic Dev Stack workflow with Claude Code and Spec-Kit Plus;build foundation for future phases Success criteria:-Fully functional CLI app demonstrating all 5 basic features\\(Add task with title/description,View list with status,Update details,Delete by ID,Mark complete/incomplete\\)-Code generated solely via Claude Code from refined specs;iterations logged in specs-history and CLAUDE.md-App runs interactively with menu,handles errors gracefully-Design modular for extensibility\\(e.g.,add priorities/due dates later\\)-Includes reusable intelligence patterns\\(subagents/agent skills\\)for bonus points Constraints:-No manual coding;refine specs until Claude generates correct output-Technology:Python 3.13+ with UV,no external deps beyond stdlib-Storage:In-memory only\\(lists/dicts\\)-Repo structure:constitution.md,specs/ with history,''\")",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly)",
+      "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json)",
+      "Bash(.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(git rev-parse --git-dir)",
+      "Bash(python -c \"from todo_app.cli.menu import TodoMenu; print\\(''Import successful''\\)\")",
+      "Bash(python main.py)",
+      "Bash(python src/main.py)",
+      "Bash(python test_functionality.py)",
+      "Bash(timeout 5 python src/main.py)",
+      "Bash(del test_functionality.py)"
+    ]
+  }
+}
