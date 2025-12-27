@@ -84,6 +84,79 @@ def validate_task_id(task_id: Union[int, str]) -> int:
     return task_id
 
 
+def validate_priority(priority: str) -> bool:
+    """
+    Validate a task priority.
+
+    Args:
+        priority (str): The priority to validate
+
+    Returns:
+        bool: True if the priority is valid, False otherwise
+
+    Raises:
+        ValueError: If the priority is invalid
+    """
+    if not isinstance(priority, str):
+        raise ValueError("Priority must be a string")
+
+    if priority not in ["high", "medium", "low"]:
+        raise ValueError(f"Priority must be one of 'high', 'medium', or 'low', got: {priority}")
+
+    return True
+
+
+def validate_tags(tags: list) -> bool:
+    """
+    Validate a list of task tags.
+
+    Args:
+        tags (list): The list of tags to validate
+
+    Returns:
+        bool: True if the tags are valid, False otherwise
+
+    Raises:
+        ValueError: If the tags are invalid
+    """
+    if not isinstance(tags, list):
+        raise ValueError("Tags must be a list")
+
+    for tag in tags:
+        if not isinstance(tag, str):
+            raise ValueError(f"All tags must be strings, got: {type(tag)} for tag: {tag}")
+
+    return True
+
+
+def validate_due_date(due_date: str) -> bool:
+    """
+    Validate a due date string in ISO format.
+
+    Args:
+        due_date (str): The due date string to validate in ISO format (YYYY-MM-DD)
+
+    Returns:
+        bool: True if the due date is valid, False otherwise
+
+    Raises:
+        ValueError: If the due date is invalid
+    """
+    if due_date is None:
+        return True  # None is valid for due_date
+
+    if not isinstance(due_date, str):
+        raise ValueError("Due date must be a string or None")
+
+    import re
+    # ISO 8601 format: YYYY-MM-DD
+    pattern = r'^\d{4}-\d{2}-\d{2}$'
+    if not re.match(pattern, due_date):
+        raise ValueError(f"Due date must be in ISO format (YYYY-MM-DD), got: {due_date}")
+
+    return True
+
+
 def sanitize_input(input_str: str) -> str:
     """
     Sanitize user input to prevent injection attacks.

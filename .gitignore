@@ -134,3 +134,12 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Local Claude config (do not commit)
+.claude/settings.local.json
+
+# Virtual environment
+.venv/
+
+# OS junk
+nul
