@@ -32,17 +32,20 @@ class TodoMenu:
         print("9. Search tasks")
         print("10. Filter tasks")
         print("11. Sort tasks")
-        print("12. Exit")
+        print("12. Set recurring pattern on task")
+        print("13. Set due date & time on task")
+        print("14. View reminders summary")
+        print("15. Exit")
         print("----------------------")
 
     def get_user_choice(self) -> str:
         """Get user's menu choice."""
         try:
-            choice = input("Enter your choice (1-7): ").strip()
+            choice = input("Enter your choice (1-15): ").strip()
             return choice
         except (EOFError, KeyboardInterrupt):
             print("\nExiting...")
-            return "7"
+            return "15"
 
     def add_task(self):
         """Add a new task."""
@@ -74,7 +77,20 @@ class TodoMenu:
             if not due_date:
                 due_date = None
 
-            task_id = self.todo_manager.add_task(title, description, priority, tags, due_date)
+            # Get recurrence pattern
+            recurrence = input("Enter recurrence pattern (daily/weekly/monthly, optional, press Enter to skip): ").strip().lower()
+            if not recurrence:
+                recurrence = None
+            elif recurrence not in ["daily", "weekly", "monthly"]:
+                print("Invalid recurrence pattern. Leaving as None.")
+                recurrence = None
+
+            # Get due datetime
+            due_datetime = input("Enter due date and time (YYYY-MM-DD HH:MM, optional, press Enter to skip): ").strip()
+            if not due_datetime:
+                due_datetime = None
+
+            task_id = self.todo_manager.add_task(title, description, priority, tags, due_date, recurrence, due_datetime)
             print(f"Task added successfully with ID: {task_id}")
         except ValueError as e:
             print(f"Error adding task: {e}")
@@ -91,14 +107,36 @@ class TodoMenu:
 
         print("\n--- Your Tasks ---")
         for task in tasks:
-            status = "✓" if task.completed else "○"
+            status = "[X]" if task.completed else "[ ]"
             priority_indicator = self._get_priority_indicator(task.priority)
+
+            # Build indicators string
+            indicators = []
+            if task.recurrence:
+                indicators.append("R")  # Recurrence indicator
+            if task.due_datetime:
+                indicators.append("DT")  # Due datetime indicator
+                # Check if it's overdue
+                from todo_app.services.datetime_utils import is_overdue
+                if is_overdue(task.due_datetime):
+                    indicators.append("OV")  # Overdue indicator
+            elif task.due_date:
+                indicators.append("DD")  # Due date indicator
+
+            indicators_str = " ".join(indicators)
+            if indicators_str:
+                indicators_str = f" [{indicators_str}]"
+
             tags_str = f" [{', '.join(task.tags)}]" if task.tags else ""
-            print(f"{status} ID: {task.id} | {priority_indicator} | Title: {task.title}{tags_str}")
+            print(f"{status} ID: {task.id} | {priority_indicator}{indicators_str} | Title: {task.title}{tags_str}")
             if task.description:
                 print(f"    Description: {task.description}")
             if task.due_date:
                 print(f"    Due Date: {task.due_date}")
+            if task.due_datetime:
+                print(f"    Due Datetime: {task.due_datetime}")
+            if task.recurrence:
+                print(f"    Recurrence: {task.recurrence}")
         print("------------------")
 
     def update_task(self):
@@ -118,6 +156,8 @@ class TodoMenu:
             print(f"Current priority: {current_task.priority}")
             print(f"Current tags: {', '.join(current_task.tags) if current_task.tags else 'None'}")
             print(f"Current due date: {current_task.due_date if current_task.due_date else 'None'}")
+            print(f"Current due datetime: {current_task.due_datetime if current_task.due_datetime else 'None'}")
+            print(f"Current recurrence: {current_task.recurrence if current_task.recurrence else 'None'}")
             print(f"Current status: {'Completed' if current_task.completed else 'Incomplete'}")
 
             new_title = input(f"Enter new title (or press Enter to keep '{current_task.title}'): ").strip()
@@ -147,6 +187,21 @@ class TodoMenu:
             elif new_due_date.lower() == "none":
                 new_due_date = None  # Explicitly set to None
 
+            new_due_datetime = input(f"Enter new due datetime (YYYY-MM-DD HH:MM, or press Enter to keep current): ").strip()
+            if new_due_datetime == "":
+                new_due_datetime = None  # Use None to indicate no change
+            elif new_due_datetime.lower() == "none":
+                new_due_datetime = None  # Explicitly set to None
+
+            new_recurrence = input(f"Enter new recurrence (daily/weekly/monthly, or press Enter to keep current): ").strip().lower()
+            if new_recurrence == "":
+                new_recurrence = None  # Use None to indicate no change
+            elif new_recurrence.lower() == "none":
+                new_recurrence = None  # Explicitly set to None
+            elif new_recurrence not in ["daily", "weekly", "monthly"]:
+                print("Invalid recurrence pattern. Keeping current recurrence.")
+                new_recurrence = None
+
             new_status_input = input(f"Enter new status (completed/incomplete, or press Enter to keep current): ").strip().lower()
             if new_status_input == "":
                 new_completed = None  # Use None to indicate no change
@@ -160,12 +215,119 @@ class TodoMenu:
 
             # Perform the update
             self.todo_manager.update_task(task_id, new_title, new_description,
-                                       new_priority, new_tags, new_due_date, new_completed)
+                                       new_priority, new_tags, new_due_date,
+                                       new_recurrence, new_due_datetime, new_completed)
             print("Task updated successfully.")
         except ValueError as e:
             print(f"Error updating task: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+
+    def set_recurring_pattern(self):
+        """Set the recurring pattern of a task."""
+        try:
+            task_id_str = input("Enter task ID to set recurring pattern: ").strip()
+            if not task_id_str:
+                print("Task ID is required.")
+                return
+
+            task_id = int(task_id_str)
+
+            # Validate the task exists
+            current_task = self.todo_manager.get_task_by_id(task_id)
+
+            print(f"Current recurrence: {current_task.recurrence if current_task.recurrence else 'None'}")
+            print("Available recurrence patterns: daily, weekly, monthly")
+            new_recurrence = input("Enter new recurrence pattern: ").strip().lower()
+
+            if new_recurrence in ["none", ""]:
+                new_recurrence = None
+            elif new_recurrence not in ["daily", "weekly", "monthly"]:
+                print("Invalid recurrence pattern. Please enter 'daily', 'weekly', or 'monthly'.")
+                return
+
+            if new_recurrence is None:
+                success = self.todo_manager.update_task(task_id, recurrence=None)
+            else:
+                success = self.todo_manager.update_task(task_id, recurrence=new_recurrence)
+
+            if success:
+                if new_recurrence:
+                    print(f"Recurrence pattern set to '{new_recurrence}' for task ID {task_id}.")
+                else:
+                    print(f"Recurrence pattern removed from task ID {task_id}.")
+            else:
+                print(f"Failed to update recurrence pattern for task ID {task_id}.")
+        except ValueError as e:
+            print(f"Error setting recurring pattern: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+    def set_due_datetime(self):
+        """Set the due date and time of a task."""
+        try:
+            task_id_str = input("Enter task ID to set due date and time: ").strip()
+            if not task_id_str:
+                print("Task ID is required.")
+                return
+
+            task_id = int(task_id_str)
+
+            # Validate the task exists
+            current_task = self.todo_manager.get_task_by_id(task_id)
+
+            print(f"Current due datetime: {current_task.due_datetime if current_task.due_datetime else 'None'}")
+            new_due_datetime = input("Enter new due date and time (YYYY-MM-DD HH:MM): ").strip()
+
+            if new_due_datetime.lower() in ["none", ""]:
+                new_due_datetime = None
+
+            if new_due_datetime is None:
+                success = self.todo_manager.update_task(task_id, due_datetime=None)
+            else:
+                success = self.todo_manager.update_task(task_id, due_datetime=new_due_datetime)
+
+            if success:
+                if new_due_datetime:
+                    print(f"Due date and time set to '{new_due_datetime}' for task ID {task_id}.")
+                else:
+                    print(f"Due date and time removed from task ID {task_id}.")
+            else:
+                print(f"Failed to update due date and time for task ID {task_id}.")
+        except ValueError as e:
+            print(f"Error setting due date and time: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+    def view_reminders_summary(self):
+        """View a summary of reminders (overdue and upcoming tasks)."""
+        try:
+            reminders = self.todo_manager.check_reminders()
+
+            overdue_tasks = reminders["overdue"]
+            upcoming_tasks = reminders["upcoming"]
+
+            print("\n--- Reminders Summary ---")
+
+            if overdue_tasks:
+                print(f"\n{self.color_for_status('overdue')}[!] {len(overdue_tasks)} OVERDUE TASK(S)!{self.reset_color()}")
+                for task in overdue_tasks:
+                    priority_indicator = self._get_priority_indicator(task.priority)
+                    print(f"  {self.color_for_status('overdue')}[!]{self.reset_color()} ID: {task.id} | {priority_indicator} | {task.title}")
+            else:
+                print(f"\n{self.color_for_status('normal')}[V] No overdue tasks!{self.reset_color()}")
+
+            if upcoming_tasks:
+                print(f"\n{self.color_for_status('upcoming')}[>] {len(upcoming_tasks)} UPCOMING TASK(S)!{self.reset_color()}")
+                for task in upcoming_tasks:
+                    priority_indicator = self._get_priority_indicator(task.priority)
+                    print(f"  {self.color_for_status('upcoming')}[>]{self.reset_color()} ID: {task.id} | {priority_indicator} | {task.title} (Due: {task.due_datetime})")
+            else:
+                print(f"{self.color_for_status('normal')}[>] No upcoming tasks in the next 24 hours.{self.reset_color()}")
+
+            print("-------------------------")
+        except Exception as e:
+            print(f"Error viewing reminders: {e}")
 
     def delete_task(self):
         """Delete a task."""
@@ -333,7 +495,7 @@ class TodoMenu:
 
             print(f"\n--- Search Results for '{keyword}' ---")
             for task in matching_tasks:
-                status = "✓" if task.completed else "○"
+                status = "[X]" if task.completed else "[ ]"
                 priority_indicator = self._get_priority_indicator(task.priority)
                 tags_str = f" [{', '.join(task.tags)}]" if task.tags else ""
                 print(f"{status} ID: {task.id} | {priority_indicator} | Title: {task.title}{tags_str}")
@@ -409,7 +571,7 @@ class TodoMenu:
 
             print("\n--- Filtered Tasks ---")
             for task in filtered_tasks:
-                status = "✓" if task.completed else "○"
+                status = "[X]" if task.completed else "[ ]"
                 priority_indicator = self._get_priority_indicator(task.priority)
                 tags_str = f" [{', '.join(task.tags)}]" if task.tags else ""
                 print(f"{status} ID: {task.id} | {priority_indicator} | Title: {task.title}{tags_str}")
@@ -451,7 +613,7 @@ class TodoMenu:
 
             print(f"\n--- Sorted Tasks ({sort_by}) ---")
             for task in sorted_tasks:
-                status = "✓" if task.completed else "○"
+                status = "[X]" if task.completed else "[ ]"
                 priority_indicator = self._get_priority_indicator(task.priority)
                 tags_str = f" [{', '.join(task.tags)}]" if task.tags else ""
                 print(f"{status} ID: {task.id} | {priority_indicator} | Title: {task.title}{tags_str}")
@@ -464,6 +626,29 @@ class TodoMenu:
             print(f"Error sorting tasks: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+
+    def color_for_priority(self, priority: str) -> str:
+        """Get ANSI color code for priority level."""
+        colors = {
+            'high': '\033[91m',    # Red
+            'medium': '\033[93m',  # Yellow
+            'low': '\033[92m',     # Green
+            'completed': '\033[90m' # Dark Gray
+        }
+        return colors.get(priority, '\033[0m')  # Default to reset
+
+    def color_for_status(self, status: str) -> str:
+        """Get ANSI color code for task status."""
+        colors = {
+            'overdue': '\033[91m',  # Red
+            'upcoming': '\033[93m', # Yellow
+            'normal': '\033[0m'      # Default
+        }
+        return colors.get(status, '\033[0m')
+
+    def reset_color(self) -> str:
+        """Reset ANSI color."""
+        return '\033[0m'
 
     def _get_priority_indicator(self, priority: str) -> str:
         """Get the priority indicator for display."""
@@ -507,7 +692,13 @@ class TodoMenu:
             elif choice == "11":
                 self.sort_tasks()
             elif choice == "12":
+                self.set_recurring_pattern()
+            elif choice == "13":
+                self.set_due_datetime()
+            elif choice == "14":
+                self.view_reminders_summary()
+            elif choice == "15":
                 print("Thank you for using the Todo App. Goodbye!")
                 break
             else:
-                print("Invalid choice. Please enter a number between 1 and 12.")
+                print("Invalid choice. Please enter a number between 1 and 15.")

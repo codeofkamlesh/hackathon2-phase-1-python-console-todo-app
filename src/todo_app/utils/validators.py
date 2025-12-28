@@ -157,6 +157,34 @@ def validate_due_date(due_date: str) -> bool:
     return True
 
 
+def validate_due_datetime(due_datetime: str) -> bool:
+    """
+    Validate a due datetime string in ISO format.
+
+    Args:
+        due_datetime (str): The due datetime string to validate in ISO format (YYYY-MM-DD HH:MM)
+
+    Returns:
+        bool: True if the due datetime is valid, False otherwise
+
+    Raises:
+        ValueError: If the due datetime is invalid
+    """
+    if due_datetime is None:
+        return True  # None is valid for due_datetime
+
+    if not isinstance(due_datetime, str):
+        raise ValueError("Due datetime must be a string or None")
+
+    import re
+    # ISO 8601 format: YYYY-MM-DD HH:MM
+    pattern = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$'
+    if not re.match(pattern, due_datetime):
+        raise ValueError(f"Due datetime must be in ISO format (YYYY-MM-DD HH:MM), got: {due_datetime}")
+
+    return True
+
+
 def sanitize_input(input_str: str) -> str:
     """
     Sanitize user input to prevent injection attacks.

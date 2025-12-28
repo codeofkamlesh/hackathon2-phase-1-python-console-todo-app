@@ -15,7 +15,13 @@
       "Bash(timeout 5 python src/main.py)",
       "Bash(del test_functionality.py)",
       "Bash(pwsh -Command \".specify/scripts/powershell/create-new-feature.ps1 -Json -ShortName ''todo-app-organization'' -Number 1 ''Enhanced In-Memory Python Console Todo App with Intermediate Organization & Usability Features for Hackathon Phase I Target audience:Hackathon judges evaluating spec-driven extensions,code integration quality,and usability improvements Focus:Extend the existing basic Todo app by updating specs to integrate intermediate features seamlessly without disturbing or breaking any beginner level functionalities already implemented;ensure all basic operations continue to work correctly while adding polished organization tools Success criteria:-Fully functional CLI app demonstrating all basic + intermediate features without regressions in basic operations-Intermediate integrations:Tasks support priorities\\(high/medium/low\\),tags/categories\\(multiple labels like work/home per task\\);search by keyword in title/description;filter by status\\(completed/incomplete\\),priority,or date\\(using basic due_date field\\);sort by due_date,priority,or alphabetically\\(title\\)-Code generated solely via Claude Code from refined/updated specs;iterations logged in specs-history and CLAUDE.md-App provides intuitive menu options for new features,displays formatted output\\(e.g.,with priority indicators,tags\\),handles empty results gracefully-Design remains modular,extensible for advanced features\\(e.g.,full due dates/recurring\\) Constraints:-No manual coding throughout the project;refine and update existing specs until Claude generates correct output that preserves basic functionality-Technology:Python 3.13+ with UV,no external deps beyond stdlib-Storage:In-memory only;extend Task model with priority\\(str\\),tags\\(list[str]\\),due_date\\(str or None for basic date support in filter/sort\\)-Repo structure:Update existing specs/ folder with new/iterated files in history,generate updated code in src/,append to CLAUDE.md-Development:Use WSL2 on Windows;spec-driven process only,ensure updates do not alter or break basic CRUD/mark complete behaviors Not building:-Advanced features\\(recurring tasks,due date/time reminders,browser notifications\\)-Persistent storage,dat''\")",
-      "Bash(pwsh -Command \".specify/scripts/powershell/setup-plan.ps1 -Json\")"
+      "Bash(pwsh -Command \".specify/scripts/powershell/setup-plan.ps1 -Json\")",
+      "Bash(python -c \"from todo_app.cli.menu import TodoMenu; menu = TodoMenu\\(\\); print\\(''Menu created successfully''\\)\")",
+      "Bash(python test_advanced_features.py)",
+      "Bash(python test_color_symbols.py)",
+      "Bash(python test_color_symbols_updated.py)",
+      "Bash(python final_comprehensive_test.py)",
+      "Bash(del test_advanced_features.py test_color_symbols.py test_color_symbols_updated.py final_comprehensive_test.py)"
     ]
   }
 }

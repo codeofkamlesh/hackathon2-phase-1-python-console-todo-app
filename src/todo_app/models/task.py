@@ -2,7 +2,7 @@
 Task model for the Todo App.
 
 This module defines the Task dataclass that represents a single todo item
-with fields for ID, title, description, completion status, priority, tags, and due date.
+with fields for ID, title, description, completion status, priority, tags, due date, recurrence, and due datetime.
 """
 
 from dataclasses import dataclass
@@ -22,6 +22,8 @@ class Task:
         priority (str): Priority level of the task (default: 'medium', values: 'high', 'medium', 'low')
         tags (List[str]): List of tags associated with the task (default: [])
         due_date (Optional[str]): Due date in ISO format (YYYY-MM-DD) or None (default: None)
+        recurrence (Optional[str]): Recurrence pattern (default: None, values: 'daily', 'weekly', 'monthly')
+        due_datetime (Optional[str]): Due date and time in ISO format (YYYY-MM-DD HH:MM) or None (default: None)
     """
     id: int
     title: str
@@ -30,6 +32,8 @@ class Task:
     priority: str = "medium"
     tags: List[str] = None
     due_date: Optional[str] = None
+    recurrence: Optional[str] = None
+    due_datetime: Optional[str] = None
 
     def __post_init__(self):
         """Validate the task after initialization."""
@@ -55,9 +59,18 @@ class Task:
             if not isinstance(tag, str):
                 raise ValueError(f"All tags must be strings, got: {type(tag)} for tag: {tag}")
 
+        # Validate recurrence pattern if provided
+        if self.recurrence is not None:
+            if self.recurrence not in ["daily", "weekly", "monthly"]:
+                raise ValueError(f"Recurrence must be one of 'daily', 'weekly', 'monthly', or None, got: {self.recurrence}")
+
         # Validate due date format if provided
         if self.due_date is not None:
             self._validate_due_date_format(self.due_date)
+
+        # Validate due datetime format if provided
+        if self.due_datetime is not None:
+            self._validate_due_datetime_format(self.due_datetime)
 
     def _validate_due_date_format(self, due_date: str) -> bool:
         """Validate that the due date is in ISO format (YYYY-MM-DD)."""
@@ -66,4 +79,13 @@ class Task:
         pattern = r'^\d{4}-\d{2}-\d{2}$'
         if not re.match(pattern, due_date):
             raise ValueError(f"Due date must be in ISO format (YYYY-MM-DD), got: {due_date}")
+        return True
+
+    def _validate_due_datetime_format(self, due_datetime: str) -> bool:
+        """Validate that the due datetime is in ISO format (YYYY-MM-DD HH:MM)."""
+        import re
+        # ISO 8601 format: YYYY-MM-DD HH:MM
+        pattern = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$'
+        if not re.match(pattern, due_datetime):
+            raise ValueError(f"Due datetime must be in ISO format (YYYY-MM-DD HH:MM), got: {due_datetime}")
         return True
